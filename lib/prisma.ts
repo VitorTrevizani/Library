@@ -10,3 +10,5 @@ const prisma = new PrismaClient({ adapter })
 export { prisma }
 
 
+//" git remote add origin https://github.com/<nome-de-usuario>/<nome-do-repositório>.git".
+//" git push -u origin main"
