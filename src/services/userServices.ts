@@ -24,32 +24,29 @@ interface DataLogin{
 
 export const userServices = {
     createUser: async (userData:DataCreate) => {
-        try{
-
-            const user: Users | null | undefined = await prisma.users.findUnique({
-                where : {
-                    email : userData.email
-                }
-            })
-
-            if(user){
-                return {message: "Credenciais inválidas", status:409}
+        
+        const user: Users | null | undefined = await prisma.users.findUnique({
+            where : {
+                email : userData.email
             }
+        })
 
-            const salt:string = await bcrypt.genSalt(10)
-            const hash:string = await bcrypt.hash(userData.password, salt) 
-
-            await prisma.users.create({
-                data : {
-                    name : userData.name,
-                    email: userData.email,
-                    password: hash
-                }
-            })
-
-        }catch(error){
-           return {message: "Erro no servidor", status:500}
+        if(user){
+            throw new AppError( "Credenciais inválidas", 409)
         }
+
+        const salt:string = await bcrypt.genSalt(10)
+        const hash:string = await bcrypt.hash(userData.password, salt) 
+
+        await prisma.users.create({
+            data : {
+                name : userData.name,
+                email: userData.email,
+                password: hash
+            }
+        })
+
+        
         
     },
 

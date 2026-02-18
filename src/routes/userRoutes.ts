@@ -40,8 +40,7 @@ router.post("/register", validate, (req:Request, res:Response) => {
     description: 'Erro no servidor'
   }
 
-  #swagger.responses[422] = {
-    description: "O E-mail deve ser enviado em um formato válido"
+  
 */
 
 })

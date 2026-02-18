@@ -1,6 +1,6 @@
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-import express, {type Request, type Response} from "express";
+import express from "express";
 import "dotenv/config";
 import { router } from "./routes/userRoutes.js";
 const swaggerUi = require("swagger-ui-express")
