@@ -2,7 +2,8 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 import express from "express";
 import "dotenv/config";
-import { router } from "./routes/userRoutes.js";
+import { router as userRoutes } from "./routes/userRoutes.js";
+import { router as adminRoutes } from './routes/adminRoutes.js';
 const swaggerUi = require("swagger-ui-express")
 const swaggerFile = require("./docs/swagger-output.json")
 
@@ -15,7 +16,8 @@ app.use(express.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 
 //rotas
-app.use('/user', router)
+app.use('/user', userRoutes)
+app.use('/admin', adminRoutes)
 
 
 const PORT = process.env.PORT;

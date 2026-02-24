@@ -12,16 +12,14 @@ export const userController = {
     
     create: async (req:Request, res:Response) => {
         try{
-            const resultado:Erro | undefined = await userServices.createUser(req.body)
-
-            if(resultado){
-                return res.status(resultado.status).json({msg: resultado.message})
-            }
-
+            const resultado = await userServices.createUser(req.body)
             res.status(201).json({msg:"Usuário criado com sucesso", })
 
         }catch(error){
-            return res.status(500).json({ error: "Erro no servidor" });
+             if(error instanceof AppError) {
+                return res.status(error.statusCode).json({ message: error.message })
+            }
+            return res.status(500).json({ message: "Erro no servidor" })
         }
     },
 
@@ -37,6 +35,7 @@ export const userController = {
             return res.status(500).json({ message: "Erro no servidor" })
         }
     }
+
 
    
 }
