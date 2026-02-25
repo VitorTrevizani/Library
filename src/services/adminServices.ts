@@ -38,16 +38,82 @@ export const adminServices = {
         // posso fazer a rota receber uma query por onde o admin pode informar uma quantidade de copias  especificas para começar
     },
 
-    // deleteBook: async() => {
+    deleteBook: async(dataBook:Books) => {
+        const books = await prisma.books.findUnique({
+            where: {
+                title_author: {
+                    title: dataBook.title,
+                    author: dataBook.author
+                }
+            }
+        })
 
-    // },
+        if(!books){
+            throw new AppError("Não há nenhum livro registrado com os dados informados", 404)
+        }
 
-    // addCopies: async() => {
+        await prisma.books.delete({
+            where:{
+                title_author: {
+                    title: dataBook.title,
+                    author: dataBook.author
+                }
+            }
+        })
+    },
 
-    // },
+    removeCopies: async(dataBook:Books, quantity:number) => {
+        const books = await prisma.books.findUnique({
+            where: {
+                title_author: {
+                    title: dataBook.title,
+                    author: dataBook.author
+                }
+            }
+        })
 
-    // removeCopies: async() => {
+        if(!books){
+            throw new AppError("Não há nenhum livro registrado com os dados informados", 404)
+        }
 
-    // }
+        await prisma.books.update({
+            where: {
+                title_author: {
+                    title: dataBook.title,
+                    author: dataBook.author
+                }
+            },
+            data: {
+                totalCopies: books.totalCopies - quantity
+            }
+        })
+    },
+
+    addCopies: async(dataBook:Books, quantity:number) => {
+        const books = await prisma.books.findUnique({
+            where: {
+                title_author: {
+                    title: dataBook.title,
+                    author: dataBook.author
+                }
+            }
+        })
+
+        if(!books){
+            throw new AppError("Não há nenhum livro registrado com os dados informados", 404)
+        }
+
+        await prisma.books.update({
+            where: {
+                title_author: {
+                    title: dataBook.title,
+                    author: dataBook.author
+                }
+            },
+            data: {
+                totalCopies: books.totalCopies + quantity
+            }
+        })
+    },
 
 }
