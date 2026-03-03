@@ -3,6 +3,7 @@ import { type Request, type Response } from "express";
 import { userController } from "../../controllers/user/userController.js";
 import { validate } from "../../middlewares/validateFormData.js";
 import { isAuthenticated } from "../../middlewares/isAuthenticated.js";
+import { isBanned } from "../../middlewares/isBanned.js";
 
 const router = Router()
 
@@ -50,15 +51,15 @@ router.post("/login", (req:Request, res:Response) => {
     userController.login(req, res)
 })
 
-router.get("/loans", isAuthenticated, (req, res) => {
+router.get("/loans", isAuthenticated, isBanned, (req, res) => {
     userController.showLoans(req, res)
 })
 
-router.post("/borrow/:bookId", isAuthenticated, (req:Request, res:Response) => {
+router.post("/borrow/:bookId", isAuthenticated, isBanned, (req:Request, res:Response) => {
   userController.borrow(req, res)
 })
 
-router.post("/return/:bookId", isAuthenticated, (req:Request, res:Response) => {
+router.post("/return/:bookId", isAuthenticated, isBanned, (req:Request, res:Response) => {
   userController.returnBook(req, res)
 })
 

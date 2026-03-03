@@ -28,7 +28,7 @@ export const adminUserServices = {
 
 
     ban: async (userId:string) => {
-
+    //adicionar verificação onde admin não pode banir outro admin. Para isso, deve rebaixar a usuário
         await prisma.users.update({
             where: {
                 id: userId
