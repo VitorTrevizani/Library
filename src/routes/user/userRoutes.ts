@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { type Request, type Response } from "express";
-import { userController } from "../controllers/userController.js";
-import { validate } from "../middlewares/validateFormData.js";
+import { userController } from "../../controllers/user/userController.js";
+import { validate } from "../../middlewares/validateFormData.js";
+import { isAuthenticated } from "../../middlewares/isAuthenticated.js";
 
 const router = Router()
 
@@ -48,6 +49,19 @@ router.post("/register", validate, (req:Request, res:Response) => {
 router.post("/login", (req:Request, res:Response) => {
     userController.login(req, res)
 })
+
+router.get("/loans", isAuthenticated, (req, res) => {
+    userController.showLoans(req, res)
+})
+
+router.post("/borrow/:bookId", isAuthenticated, (req:Request, res:Response) => {
+  userController.borrow(req, res)
+})
+
+router.post("/return/:bookId", isAuthenticated, (req:Request, res:Response) => {
+  userController.returnBook(req, res)
+})
+
 
 export { router }
 

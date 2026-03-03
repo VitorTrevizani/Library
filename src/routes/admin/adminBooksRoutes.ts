@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {type Request, type Response } from "express";
-import { adminControllers } from "../controllers/adminControllers.js";
+import { adminControllers } from "../../controllers/admin/adminBooksControllers.js";
 
 const router = Router()
 
@@ -25,3 +25,11 @@ router.post("/addCopies/:quantity", (req:Request, res:Response) => {
 })
 
 export { router }
+
+
+
+
+//dividir rotas de admin entre:
+// - administração de livros
+// - administração de usuários
+

@@ -1,6 +1,6 @@
-import { prisma } from "../../lib/prisma.js"
-import type { Books } from "../../generated/prisma/browser.js"
-import { AppError } from "../errors/appError.js"
+import { prisma } from "../../../lib/prisma.js"
+import type { Books } from "../../../generated/prisma/browser.js"
+import { AppError } from "../../errors/appError.js"
 
 export const adminServices = {
 
@@ -29,8 +29,8 @@ export const adminServices = {
                 data: {
                     title: dataBook.title,
                     author: dataBook.author,
-                    totalCopies: 1,
-                    availableCopies: 1
+                    totalCopies: dataBook.totalCopies? Number(dataBook.totalCopies) : 1,
+                    availableCopies: dataBook.totalCopies? Number(dataBook.totalCopies) : 1,
                 }
             })
         }
@@ -84,7 +84,8 @@ export const adminServices = {
                 }
             },
             data: {
-                totalCopies: books.totalCopies - quantity
+                totalCopies: books.totalCopies - quantity,
+                availableCopies: books.availableCopies - quantity
             }
         })
     },
@@ -111,7 +112,8 @@ export const adminServices = {
                 }
             },
             data: {
-                totalCopies: books.totalCopies + quantity
+                totalCopies: books.totalCopies + quantity,
+                availableCopies: books.availableCopies + quantity
             }
         })
     },

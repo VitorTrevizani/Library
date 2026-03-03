@@ -1,6 +1,6 @@
 import { type Request, type Response } from "express"
-import { adminServices } from "../services/adminServices.js"
-import { AppError } from "../errors/appError.js"
+import { adminServices } from "../../services/admin/adminBooksServices.js"
+import { AppError } from "../../errors/appError.js"
 
 export const adminControllers = {
 
