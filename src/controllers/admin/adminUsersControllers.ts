@@ -1,6 +1,7 @@
 import { type Request, type Response } from "express";
 import { adminUserServices } from "../../services/admin/adminUsersServices.js";
 import { adminControllers } from "./adminBooksControllers.js";
+import { AppError } from "../../errors/appError.js";
 
 export const adminUserControllers = {
 
@@ -18,6 +19,9 @@ export const adminUserControllers = {
             await adminUserServices.ban(req.body.id)
             res.status(200).json({msg: "Usuário banido com sucesso"})
         }catch(error){
+            if(error instanceof AppError){
+                return res.status(error.statusCode).json({msg: error.message})
+            }
             res.status(500).json({msg:"Erro no servidor"})
         }
     },

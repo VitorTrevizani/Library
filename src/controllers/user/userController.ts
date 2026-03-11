@@ -2,11 +2,6 @@ import { type Request, type Response } from "express"
 import { userServices } from "../../services/user/userServices.js"
 import { AppError } from "../../errors/appError.js"
 
-interface Erro{
-   message: string,
-   status: number
-}
-
 interface AuthenticatedRequest extends Request {
   userId?: string;
 }

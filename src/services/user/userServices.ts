@@ -9,6 +9,12 @@ const require = createRequire(import.meta.url);
 const jwt = require('jsonwebtoken');
 
 
+enum borrowErrors {
+  MAX_LOANS_REACHED = "MAX_LOANS_REACHED",
+  BOOK_ALREADY_BORROWED = "BOOK_ALREADY_BORROWED",
+  NO_AVAILABLE_COPIES = "NO_AVAILABLE_COPIES",
+  OVERDUE_LOANS = "OVERDUE_LOANS"
+}
 
 interface DataCreate{
     name: string
@@ -102,7 +108,7 @@ export const userServices = {
 
         let hoje = new Date();
         // o usuário não pode exeder o limite de 3 empréstimos
-        // se o usuário estiver com algum prazo atrasado, não poderá pegar livros enquanto não devolver o livro atrasado
+        // se o usuário estiver com algum prazo atrasado, não poderá pegar livros enquanto não devolver o livro atrasado(TENHO QUE RETIRAR DA BUSCA LIVROS JA DEVOLVIDOS, CASO CONTRARIO CONTARÁ OS DEVOLVIDOS)
         // um usuario só pode alugar uma cópia de cada livro.
         // o prazo é de 10 dias para todos os livros
 
@@ -115,45 +121,46 @@ export const userServices = {
 
         const userLoans = await prisma.loans.findMany({
             where:{
-                userId: userId
+                userId: userId,
+                returnedAt: null
             }
         })
 
 
         if(!book){
-            throw new AppError("Credenciais inválidas", 409)
+            throw new AppError("Credenciais inválidas", 404)
         }
 
 
         if(userLoans){
-
+            
             if(userLoans.length >= 3){
-                throw new AppError("O limite de 3 empréstimo foi atingido!  devolva um livro para poder pegar outro", 404)
+                throw new AppError("O limite de 3 empréstimo foi atingido!  devolva um livro para poder pegar outro", 409, borrowErrors.MAX_LOANS_REACHED)
             }
 
-            console.log(userLoans)
+           
 
 
             for (const loan of userLoans) {
                 if (hoje > loan.dueDate) {
-                    throw new AppError("você possui empréstimos que já excederam o prazo de entrega. devolva os livros para poder pegar outros", 404)
-                }
+                    throw new AppError("você possui empréstimos que já excederam o prazo de entrega. devolva os livros para poder pegar outros", 409, borrowErrors.OVERDUE_LOANS)
+                }      
             }
         
         }
 
-        
+       
 
         for(const loan of userLoans){
             if(loan.bookId == bookId){
-                throw new AppError("Você só pode alugar uma cópia de cada livro por vez", 404)
+                throw new AppError("Você só pode alugar uma cópia de cada livro por vez", 409, borrowErrors.BOOK_ALREADY_BORROWED)
             } 
         }
 
-
+      
 
         if(book.availableCopies < 1){
-            throw new AppError("Não há cópias disponíveis", 404)
+            throw new AppError("Não há cópias disponíveis", 409, borrowErrors.NO_AVAILABLE_COPIES)
         }
         
 
@@ -200,7 +207,19 @@ export const userServices = {
             throw new AppError("Credenciais inválidas", 409)
         }
 
-        const userLoans = await prisma.loans.updateMany({
+        const loan = await prisma.loans.findFirst({
+            where:{
+                userId: userId,
+                bookId : bookId,
+                returnedAt: null
+            }
+        })
+
+        if(!loan){
+            throw new AppError("Empréstimo não encontrado",404)
+        }
+
+        await prisma.loans.updateMany({
             where:{
                 userId: userId,
                 bookId: bookId
@@ -219,6 +238,7 @@ export const userServices = {
                availableCopies: book.availableCopies + 1
             }
         })
+
     } ,  
 
 }

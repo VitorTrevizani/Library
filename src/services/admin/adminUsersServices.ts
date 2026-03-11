@@ -1,6 +1,7 @@
 import { prisma } from "../../../lib/prisma.js";
 import type { Books } from "../../../generated/prisma/browser.js"
 import { Role } from "../../../generated/prisma/browser.js";
+import { AppError } from "../../errors/appError.js";
 
 export const adminUserServices = {
     
@@ -28,7 +29,17 @@ export const adminUserServices = {
 
 
     ban: async (userId:string) => {
-    //adicionar verificação onde admin não pode banir outro admin. Para isso, deve rebaixar a usuário
+
+        const user = await prisma.users.findUnique({
+            where: {
+                id: userId
+            }
+        })  
+
+        if(user?.role == Role.ADMIN){
+            throw new AppError("Usuários com o status de administrador não podem ser banidos", 404)
+        }
+
         await prisma.users.update({
             where: {
                 id: userId
