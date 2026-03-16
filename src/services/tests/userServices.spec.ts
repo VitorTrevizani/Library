@@ -1,61 +1,205 @@
 import { userServices } from "../user/userServices.js";
+import { userServicesErrors } from "../user/userServices.js";
 import { prisma } from "../../../lib/prisma.js";
 import { title } from "node:process";
-import { AppError } from "../../errors/appError.js";
-// function soma(a: number, b: number) {
-//   return a + b
-// }
+import "../user/userServices.js"
+import bcrypt from 'bcrypt'
 
-// describe('soma', () => {
-//   it('deve somar dois números', () => {
-//     expect(soma(2, 3)).toBe(5)
-//   })
-// })
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const jwt = require('jsonwebtoken');
 
+
+vi.mock('bcrypt')
+vi.mock('jsonwebtoken')
+jwt.sign = vi.fn();
 
 vi.mock("../../../lib/prisma.js", ()  => ({
     prisma: {
         books: {
             findUnique: vi.fn(),
+            update: vi.fn(),
         },
         loans: {
-            findMany: vi.fn()
+            findMany: vi.fn(),
+            updateMany: vi.fn(),
+            findFirst: vi.fn(),
+            create: vi.fn(),
+        },
+        users: {
+            findUnique: vi.fn(),
+            create: vi.fn()
         }
     }
 }))
 
-const findUniqueMock = prisma.books.findUnique as any
-const findManyMock = prisma.books.findUnique as any
+const findUniqueBooksMock = prisma.books.findUnique as any
+const updateBooksMock = prisma.books.update as any
+const findManyLoansMock = prisma.loans.findMany as any
+const updateManyLoansMock = prisma.loans.updateMany as any
+const findFirstLoansMock = prisma.loans.findFirst as any
+const createLoansMock = prisma.loans.create as any
+const findUniqueUsersMock = prisma.users.findUnique as any
+const createUsersMock = prisma.users.create as any
+
+
+const genSaltMock = bcrypt.genSalt as any
+const hashMock = bcrypt.hash as any
+const compareMock = bcrypt.compare as any
+
+const jwtSignMock = jwt.sign as any
+
+
+describe("createUser", () => {
+ 
+    it("Should throw INVALID_USER_CREDENTIALS", async () => {
+
+        const userData = {
+            email: "myemail@email.com",
+            name: "myname",
+            password: "mypassword"
+        }
+
+        findUniqueUsersMock.mockResolvedValue({
+            id: "userid"
+        })
+
+        const resultado = userServices.createUser(userData);
+
+        expect(resultado).rejects.toMatchObject({code: userServicesErrors.INVALID_USER_CREDENTIALS})
+    })
+
+    it("Should create a new user with hash in 'password'", async () => {
+
+        const userData = {
+            email: "myemail@email.com",
+            name: "myname",
+            password: "mypassword"
+        }
+
+        findUniqueUsersMock.mockResolvedValue(null)
+
+        genSaltMock.mockResolvedValue('salt')
+        hashMock.mockResolvedValue('myhash')
+
+        createUsersMock.mockResolvedValue({count: 1})
+
+        const resultado = await userServices.createUser(userData);
+
+        expect(bcrypt.genSalt).toHaveBeenCalledWith(10)
+        expect(prisma.users.create).toHaveBeenCalledWith({
+            data : {
+                name : userData.name,
+                email: userData.email,
+                password: 'myhash'
+            }
+        })
+        
+    })
+
+})
+
+
+describe("login", () => {
+
+  it("should throw INVALID_USER_CREDENTIALS", async () => {
+
+        const userData = {
+            email: "myemail@email.com",
+            name: "myname",
+            password: "mypassword"
+        }
+
+        findUniqueUsersMock.mockResolvedValue(null)
+
+        const resultado = userServices.login(userData)
+
+        expect(resultado).rejects.toMatchObject({code: userServicesErrors.INVALID_USER_CREDENTIALS})
+
+  })
+
+  it("should throw INCORRET_PASSWORD", async () => {
+    
+        const userData = {
+            email: "myemail@email.com",
+            name: "myname",
+            password: "mypassword"
+        }
+
+        findUniqueUsersMock.mockResolvedValue({
+            id: "userid",
+            email: "myemail@email.com",
+            name: "myname",
+            password: "mypasswordmypassword"
+        })
+
+        compareMock.mockResolvedValue(false)
+
+        const resultado = userServices.login(userData)
+
+        expect(resultado).rejects.toMatchObject({code: userServicesErrors.INCORRECT_PASSWORD})
+
+  })
+
+  it("should throw INCORRET_PASSWORD", async () => {
+    
+        const userData = {
+            email: "myemail@email.com",
+            name: "myname",
+            password: "mypassword"
+        }
+
+        findUniqueUsersMock.mockResolvedValue({
+            id: "userid",
+            email: "myemail@email.com",
+            name: "myname",
+            password: "mypassword"
+        })
+
+        compareMock.mockResolvedValue(true)
+
+        jwtSignMock.mockResolvedValue('JWTtoken')
+
+        const resultado = await userServices.login(userData)
+
+        expect(resultado).toBe('JWTtoken')
+
+  })
+
+})
+
 
 describe("borrow", () => {
 
-  it("Deve retornar MAX_LOANS_REACHED", async () => {
+  it("Should throw MAX_LOANS_REACHED", async () => {
    
-    findUniqueMock.mockResolvedValue({
-        "id" :"2444666668888888810101010",
-        "title" : "biblia", 
-        "author": "vários",
-        "totalCopies": 4,
-        "availableCopies": 3,
+    const userId = "userid"
+    const bookId = "bookid"
+
+    findUniqueBooksMock.mockResolvedValue({
+        "id" :"bookid",
     })
 
-    findManyMock.mockResolvedValue([
-        {"id": "9fc967cc-ce22-4164-aaa9-ba036322dfe1"},
-        {"id": "9fc967cc-svfg788hfdg87e1"},
-        {"id": "9fc967cc-sdf7e747477567vub-frt"}
-    ])
+    findUniqueUsersMock.mockResolvedValue({
+        "id": "userid"
+    })
 
-    const userId = "abcdefghijknmopqrstuvwxyz"
-    const bookId = "2444666668888888810101010" 
+
+    findManyLoansMock.mockResolvedValue([
+        {"id": "loan1"},
+        {"id": "loan2"},
+        {"id": "loan3"}
+    ])
+ 
 
     const resultado = userServices.borrow(bookId, userId)
 
-    await expect(resultado).rejects.toMatchObject({code: "MAX_LOANS_REACHED"})
+    await expect(resultado).rejects.toMatchObject({code: userServicesErrors.MAX_LOANS_REACHED})
   })
 
 
 
-  it("Deve retornar OVERDUE_LOANS", async () => {
+  it("Should throw OVERDUE_LOANS", async () => {
    
     // Data de ontem
     const hoje = new Date();
@@ -65,78 +209,267 @@ describe("borrow", () => {
     // Formatar em estilo timestamp (ISO 8601)
     const ontemISO = ontem.toISOString();
 
-    
-    findUniqueMock.mockResolvedValue({
-        "id" :"2444666668888888810101010",
-        "title" : "biblia", 
-        "author": "vários",
-        "totalCopies": 4,
-        "availableCopies": 3,
+    const userId = "userid"
+    const bookId = "bookid" 
+
+    findUniqueBooksMock.mockResolvedValue({
+        "id" :"bookid",
     })
 
-    findManyMock.mockResolvedValue([
+    findUniqueUsersMock.mockResolvedValue({
+        "id": "userid"
+    })
+
+    findManyLoansMock.mockResolvedValue([
         {"dueDate": new Date(ontemISO)},
         {"dueDate": new Date("2026-02-28 23:15:22.835")}
        
     ])
 
-    const userId = "abcdefghijknmopqrstuvwxyz"
-    const bookId = "2444666668888888810101010" 
 
     const resultado = userServices.borrow(bookId, userId)
 
-    await expect(resultado).rejects.toMatchObject({code: "OVERDUE_LOANS"})
+    await expect(resultado).rejects.toMatchObject({code: userServicesErrors.OVERDUE_LOANS})
   })
 
 
   
-  it("Deve retornar BOOK_ALREADY_BORROWED", async () => {
+  it("Should throw BOOK_ALREADY_BORROWED", async () => {
     
-    findUniqueMock.mockResolvedValue({
-        "id" :"2444666668888888810101010",
+    
+    const userId = "userid"
+    const bookId = "bookid" 
+
+    findUniqueBooksMock.mockResolvedValue({
+        "id" :"bookid",
     })
 
-    findManyMock.mockResolvedValue([
-        {"bookId": "2444666668888888810101010"},
-        {"bookId": "7777778239449548810101010"}
+    findUniqueUsersMock.mockResolvedValue({
+        "id": "userid"
+    })
+
+    findManyLoansMock.mockResolvedValue([
+        {"bookId": "bookid"},
+        {"bookId": "bookidbookid"}
        
     ])
 
-    const userId = "abcdefghijknmopqrstuvwxyz"
-    const bookId = "2444666668888888810101010" 
 
     const resultado = userServices.borrow(bookId, userId)
 
-    await expect(resultado).rejects.toMatchObject({code: "BOOK_ALREADY_BORROWED"})
+    await expect(resultado).rejects.toMatchObject({code: userServicesErrors.BOOK_ALREADY_BORROWED})
   })
 
 
   
-  it("Deve retornar NO_AVAILABLE_COPIES", async () => {
-   
-    findUniqueMock.mockResolvedValue({
+  it("Should throw NO_AVAILABLE_COPIES", async () => {
+
+   //testar o loan vazio
+
+    const userId = "userid"
+    const bookId = "bookid"
+
+    findUniqueBooksMock.mockResolvedValue({
         "availableCopies": 0
     })
 
-    findManyMock.mockResolvedValue([
-        {id: "sdx4x985h7ht7h57h7th578h58 th"}
+    findUniqueUsersMock.mockResolvedValue({
+        "id": "userid"
+    })
+
+    findManyLoansMock.mockResolvedValue([
+        {id: "loanid1"}
     ])
 
-    const userId = "abcdefghijknmopqrstuvwxyz"
-    const bookId = "2444666668888888810101010" 
+    
 
     const resultado = userServices.borrow(bookId, userId)
 
-    await expect(resultado).rejects.toMatchObject({code: "NO_AVAILABLE_COPIES"})
+    await expect(resultado).rejects.toMatchObject({code: userServicesErrors.NO_AVAILABLE_COPIES})
   })
+
+
+  it("Should throw INVALID_BOOK_CREDENTIALS", () => {
+ 
+    const userId = "userid";
+    const bookId = "bookid";
+
+    findUniqueBooksMock.mockResolvedValue(
+       null
+    )
+
+    findUniqueUsersMock.mockResolvedValue({
+       id: "userid"
+    })
+
+    const resultado = userServices.borrow(bookId, userId)
+
+    expect(resultado).rejects.toMatchObject({code: userServicesErrors.INVALID_BOOK_CREDENTIALS})
+  })
+
+  
+  it("Should throw INVALID_USER_CREDENTIALS", () => {
+ 
+    const userId = "userid";
+    const bookId = "bookid";
+
+    findUniqueBooksMock.mockResolvedValue({
+       id: "bookid"
+    })
+
+    findUniqueUsersMock.mockResolvedValue(
+       null
+    )
+
+    const resultado = userServices.borrow(bookId, userId)
+
+    expect(resultado).rejects.toMatchObject({code: userServicesErrors.INVALID_USER_CREDENTIALS})
+  })
+
+
+   it("Should decrement 1 in 'availableCopies'", async () => {
+
+        const bookId = "bookid";
+        const userId = "userid";
+
+        findUniqueBooksMock.mockResolvedValue({
+            id: "bookid",
+            availableCopies: 2
+        })
+
+        findUniqueUsersMock.mockResolvedValue({
+            "id": "userid"
+        })
+
+        findFirstLoansMock.mockResolvedValue({
+            userId: "userid",
+            bookId: "bookid",
+            returnedAt: null
+        })
+
+        createLoansMock.mockResolvedValue({ count: 1 })
+
+        updateBooksMock.mockResolvedValue({
+            id: "bookid",
+            availableCopies: 1
+        })
+
+        await userServices.borrow(bookId, userId)
+
+        expect(prisma.books.update).toHaveBeenCalledWith({
+            where: { id: "bookid" },
+            data: {
+                availableCopies: 1
+            }
+        })
+    })
+
 })
 
 
 
 describe("returnBook", () => {
 
-    it("deve incrementar 1 ao campo 'availableCopies'", async () => {
-         
+
+    it("Should increment 1 in 'availableCopies'", async () => {
+
+        const bookId = "bookid";
+        const userId = "userid";
+
+        findUniqueBooksMock.mockResolvedValue({
+            id: "bookid",
+            availableCopies: 2
+        })
+
+        findUniqueUsersMock.mockResolvedValue({
+            "id": "userid"
+        })
+
+        findFirstLoansMock.mockResolvedValue({
+            userId: "userid",
+            bookId: "bookid",
+            returnedAt: null
+        })
+
+        updateManyLoansMock.mockResolvedValue({ count: 1 })
+
+        updateBooksMock.mockResolvedValue({
+            id: "bookid",
+            availableCopies: 3
+        })
+
+        await userServices.returnBook(bookId, userId)
+
+        expect(prisma.books.update).toHaveBeenCalledWith({
+            where: { id: "bookid" },
+            data: {
+                availableCopies: 3
+            }
+        })
     })
+
+
+    
+  it("Should throw INVALID_BOOK_CREDENTIALS", () => {
+ 
+    const userId = "userid";
+    const bookId = "bookid";
+
+    findUniqueBooksMock.mockResolvedValue(
+        null
+    )
+
+    findUniqueUsersMock.mockResolvedValue({
+       id: "userid"
+    })
+
+    const resultado = userServices.returnBook(bookId, userId)
+
+    expect(resultado).rejects.toMatchObject({code: userServicesErrors.INVALID_BOOK_CREDENTIALS})
+  })
+
+  
+  it("Should throw INVALID_USER_CREDENTIALS", () => {
+ 
+    const userId = "userid";
+    const bookId = "bookid";
+
+    findUniqueBooksMock.mockResolvedValue({
+       id: "bookid"
+    })
+
+    findUniqueUsersMock.mockResolvedValue(
+       null
+    )
+
+    const resultado = userServices.returnBook(bookId, userId)
+
+    expect(resultado).rejects.toMatchObject({code: userServicesErrors.INVALID_USER_CREDENTIALS})
+  })
+
+    
+  it("Should throw NON_EXISTENT_LOAN", () => {
+
+    const userId = "userid";
+    const bookId = "bookid";
+
+    findUniqueBooksMock.mockResolvedValue({
+       id: "bookid"
+    })
+
+    findUniqueUsersMock.mockResolvedValue({
+       id: "userid"
+    })
+
+    findFirstLoansMock.mockResolvedValue(
+        null
+    )
+
+
+    const resultado = userServices.returnBook(bookId, userId)
+
+    expect(resultado).rejects.toMatchObject({code: userServicesErrors.NON_EXISTENT_LOAN})
+  })
+
 })
 

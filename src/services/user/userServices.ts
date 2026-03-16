@@ -9,11 +9,15 @@ const require = createRequire(import.meta.url);
 const jwt = require('jsonwebtoken');
 
 
-enum borrowErrors {
+enum userServicesErrors {
+  INCORRECT_PASSWORD = "INCORRECT_PASSWORD",
   MAX_LOANS_REACHED = "MAX_LOANS_REACHED",
   BOOK_ALREADY_BORROWED = "BOOK_ALREADY_BORROWED",
   NO_AVAILABLE_COPIES = "NO_AVAILABLE_COPIES",
-  OVERDUE_LOANS = "OVERDUE_LOANS"
+  OVERDUE_LOANS = "OVERDUE_LOANS",
+  INVALID_USER_CREDENTIALS = "INVALID_USER_CREDENTIALS",
+  INVALID_BOOK_CREDENTIALS = "INVALID_BOOK_CREDENTIALS",
+  NON_EXISTENT_LOAN = "NON_EXISTENT_LOAN"
 }
 
 interface DataCreate{
@@ -28,7 +32,7 @@ interface DataLogin{
 }
 
 
-export const userServices = {
+const userServices = {
     createUser: async (userData:DataCreate) => {
         
         const user: Users | null | undefined = await prisma.users.findUnique({
@@ -38,7 +42,7 @@ export const userServices = {
         })
 
         if(user){
-            throw new AppError( "Credenciais inválidas", 409)
+            throw new AppError( "Credenciais inválidas", 409, userServicesErrors.INVALID_USER_CREDENTIALS)
         }
 
         const salt:string = await bcrypt.genSalt(10)
@@ -65,7 +69,7 @@ export const userServices = {
         })
 
         if(!user){
-            throw new AppError("Credenciais inválidas", 401)
+            throw new AppError("Credenciais inválidas", 401, userServicesErrors.INVALID_USER_CREDENTIALS)
         }
 
 
@@ -73,7 +77,7 @@ export const userServices = {
 
 
         if(!isMatch){
-           throw new AppError("Senha incorreta!", 401)
+           throw new AppError("Senha incorreta!", 401, userServicesErrors.INCORRECT_PASSWORD)
         }
 
 
@@ -118,6 +122,12 @@ export const userServices = {
             }
         })
 
+        const user = await prisma.users.findUnique({
+            where: {
+                id: userId
+            }
+        })
+
 
         const userLoans = await prisma.loans.findMany({
             where:{
@@ -128,39 +138,40 @@ export const userServices = {
 
 
         if(!book){
-            throw new AppError("Credenciais inválidas", 404)
+            throw new AppError("Credenciais inválidas", 409, userServicesErrors.INVALID_BOOK_CREDENTIALS)
         }
 
-
-        if(userLoans){
-            
-            if(userLoans.length >= 3){
-                throw new AppError("O limite de 3 empréstimo foi atingido!  devolva um livro para poder pegar outro", 409, borrowErrors.MAX_LOANS_REACHED)
-            }
-
-           
-
-
-            for (const loan of userLoans) {
-                if (hoje > loan.dueDate) {
-                    throw new AppError("você possui empréstimos que já excederam o prazo de entrega. devolva os livros para poder pegar outros", 409, borrowErrors.OVERDUE_LOANS)
-                }      
-            }
-        
+        if(!user){
+            throw new AppError("Credenciais invállidas", 409, userServicesErrors.INVALID_USER_CREDENTIALS)
         }
 
        
+        if(userLoans.length > 0){
+                 
+            if(userLoans.length >= 3){
+                throw new AppError("O limite de 3 empréstimo foi atingido!  devolva um livro para poder pegar outro", 409, userServicesErrors.MAX_LOANS_REACHED)
+            }
 
-        for(const loan of userLoans){
-            if(loan.bookId == bookId){
-                throw new AppError("Você só pode alugar uma cópia de cada livro por vez", 409, borrowErrors.BOOK_ALREADY_BORROWED)
-            } 
+            for (const loan of userLoans) {
+                if (hoje > loan.dueDate) {
+                    throw new AppError("você possui empréstimos que já excederam o prazo de entrega. devolva os livros para poder pegar outros", 409, userServicesErrors.OVERDUE_LOANS)
+                }      
+            }
+
+
+            for(const loan of userLoans){
+                if(loan.bookId == bookId){
+                    throw new AppError("Você só pode alugar uma cópia de cada livro por vez", 409, userServicesErrors.BOOK_ALREADY_BORROWED)
+                } 
+            }
+
         }
+            
 
-      
+
 
         if(book.availableCopies < 1){
-            throw new AppError("Não há cópias disponíveis", 409, borrowErrors.NO_AVAILABLE_COPIES)
+            throw new AppError("Não há cópias desse livro disponíveis", 409, userServicesErrors.NO_AVAILABLE_COPIES)
         }
         
 
@@ -189,6 +200,7 @@ export const userServices = {
 
     returnBook: async (bookId:string, userId:string) => {
      
+        
        
         let hoje = new Date();
         let dataISO = hoje.toISOString();
@@ -203,9 +215,11 @@ export const userServices = {
             }
         })
 
-        if(!book){
-            throw new AppError("Credenciais inválidas", 409)
-        }
+        const user = await prisma.users.findUnique({
+            where: {
+                id: userId
+            }
+        })
 
         const loan = await prisma.loans.findFirst({
             where:{
@@ -215,9 +229,20 @@ export const userServices = {
             }
         })
 
-        if(!loan){
-            throw new AppError("Empréstimo não encontrado",404)
+
+        if(!book){
+            throw new AppError("Credenciais inválidas", 409, userServicesErrors.INVALID_BOOK_CREDENTIALS)
         }
+
+        if(!user){
+            throw new AppError("Credenciais inválidas", 409, userServicesErrors.INVALID_USER_CREDENTIALS)
+        }
+
+        
+        if(!loan){
+            throw new AppError("Empréstimo não encontrado",404, userServicesErrors.NON_EXISTENT_LOAN)
+        }
+        
 
         await prisma.loans.updateMany({
             where:{
@@ -238,7 +263,9 @@ export const userServices = {
                availableCopies: book.availableCopies + 1
             }
         })
-
-    } ,  
-
+    },  
 }
+
+
+export {userServices, userServicesErrors}
+
