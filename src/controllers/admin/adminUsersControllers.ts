@@ -30,7 +30,10 @@ export const adminUserControllers = {
         try{
             await adminUserServices.addUser(req.body.id)
         }catch(error){
-            res.status(500).json({msg: "Erro no servidor"})
+           if(error instanceof AppError){
+                return res.status(error.statusCode).json({msg: error.message})
+            }
+            res.status(500).json({msg:"Erro no servidor"})
         }
     },
 
@@ -39,7 +42,10 @@ export const adminUserControllers = {
             await adminUserServices.addAdmin(req.body.id)
             res.status(200).json({msg: "O usuário elevado ao status de administrador"})
         }catch(error){
-            res.status(500).json({msg: "Erro no servidor"})
+            if(error instanceof AppError){
+                return res.status(error.statusCode).json({msg: error.message})
+            }
+            res.status(500).json({msg:"Erro no servidor"})
         }
     }
 }

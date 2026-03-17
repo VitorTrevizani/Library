@@ -3,7 +3,14 @@ import type { Books } from "../../../generated/prisma/browser.js"
 import { Role } from "../../../generated/prisma/browser.js";
 import { AppError } from "../../errors/appError.js";
 
-export const adminUserServices = {
+enum adminUserServicesErrors{
+    INVALID_USER_CREDENTIALS = "INVALID_USER_CREDENTIALS",
+    YOU_CANNOT_BAN_AN_ADMIN = "YOU_CANNOT_BAN_AN_ADMIN",
+
+}
+
+
+const adminUserServices = {
     
     blackList : async () => {
         const hoje = new Date()
@@ -18,7 +25,7 @@ export const adminUserServices = {
             IDs.push(loan.userId)
         }
        
-        const users = await prisma.loans.findMany({
+        const users = await prisma.users.findMany({
             where: {
                 id: {in: IDs}
             }
@@ -34,10 +41,14 @@ export const adminUserServices = {
             where: {
                 id: userId
             }
-        })  
+        }) 
+        
+        if(!user){
+            throw new AppError("Credenciais inválidas", 404, adminUserServicesErrors.INVALID_USER_CREDENTIALS)
+        }
 
         if(user?.role == Role.ADMIN){
-            throw new AppError("Usuários com o status de administrador não podem ser banidos", 404)
+            throw new AppError("Usuários com o status de administrador não podem ser banidos", 404, adminUserServicesErrors.YOU_CANNOT_BAN_AN_ADMIN)
         }
 
         await prisma.users.update({
@@ -51,6 +62,17 @@ export const adminUserServices = {
     },
 
     addUser: async (userId:string) => {
+
+        const user = await prisma.users.findUnique({
+            where: {
+                id: userId
+            }
+        })
+
+        if(!user){
+            throw new AppError("Credenciais inválidas", 404, adminUserServicesErrors.INVALID_USER_CREDENTIALS)
+        }
+
         await prisma.users.update({
             where: {
                 id:userId
@@ -62,6 +84,16 @@ export const adminUserServices = {
     },
 
     addAdmin:  async (userId:string) => {
+
+        const user = await prisma.users.findUnique({
+            where: {
+                id: userId
+            }
+        })
+
+        if(!user){
+            throw new AppError("Credenciais inválidas", 404, adminUserServicesErrors.INVALID_USER_CREDENTIALS)
+        }
         
         await prisma.users.update({
             where:{
@@ -74,3 +106,6 @@ export const adminUserServices = {
     },
 
 }
+
+
+export {adminUserServices, adminUserServicesErrors}
