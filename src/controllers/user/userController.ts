@@ -17,9 +17,9 @@ export const userController = {
 
         }catch(error){
              if(error instanceof AppError) {
-                return res.status(error.statusCode).json({ message: error.message })
+                return res.status(error.statusCode).json({ msg: error.message })
             }
-            return res.status(500).json({ message: "Erro no servidor" })
+            return res.status(500).json({ msg: "Erro no servidor" })
         }
     },
 
@@ -30,9 +30,9 @@ export const userController = {
 
         }catch(error){
             if(error instanceof AppError) {
-                return res.status(error.statusCode).json({ message: error.message })
+                return res.status(error.statusCode).json({ msg: error.message })
             }
-            return res.status(500).json({ message: "Erro no servidor" })
+            return res.status(500).json({ msg: "Erro no servidor" })
         }
     },
 
@@ -55,9 +55,9 @@ export const userController = {
 
         }catch(error){
            if(error instanceof AppError) {
-                return res.status(error.statusCode).json({ message: error.message })
+                return res.status(error.statusCode).json({ msg: error.message })
             }
-            return res.status(500).json({ message: "Erro no servidor" })
+            return res.status(500).json({ msg: "Erro no servidor" })
         }
     },
 
@@ -66,12 +66,12 @@ export const userController = {
            const userId = req.userId
            const bookId = req.params.bookId
            await userServices.returnBook(bookId as string, userId as string)
-           res.status(200).json({ message: "Livro devolvido com sucesso"})
+           res.status(200).json({ msg: "Livro devolvido com sucesso"})
         }catch(error){
            if(error instanceof AppError){
-                return res.status(error.statusCode).json({message: error.message})
+                return res.status(error.statusCode).json({msg: error.message})
            }
-           return res.status(500).json({ message: "Erro no servidor" })
+           return res.status(500).json({ msg: "Erro no servidor" })
         }
     }
 

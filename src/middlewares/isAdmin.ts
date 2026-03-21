@@ -8,7 +8,7 @@ interface AuthenticatedRequest extends Request {
 
 export const isAdmin = async (req:AuthenticatedRequest, res:Response, next:NextFunction) => {
     if(!req.userId){
-        return res.status(500).json({msg:"Erro no servidor"})
+        return res.status(400).json({msg:"Parâmetro ausente"})
     }
 
     const user = await prisma.users.findUnique({
@@ -17,8 +17,13 @@ export const isAdmin = async (req:AuthenticatedRequest, res:Response, next:NextF
         }
     })
 
-    if(user?.role != Role.ADMIN){
-        return res.status(404).json({msg:"Acesso restrito à administradores"})
+    if(!user){
+        return res.status(404).json({msg: "Usuário não encontrado"})
+    }
+
+
+    if(user.role != Role.ADMIN){
+        return res.status(403).json({msg:"Acesso restrito à administradores"})
     }
 
     next() 

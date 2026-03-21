@@ -29,6 +29,7 @@ export const adminUserControllers = {
     addUser: async (req:Request, res:Response) => {
         try{
             await adminUserServices.addUser(req.body.id)
+            res.status(200).json({msg: "Usuário recebeu status de USER"})
         }catch(error){
            if(error instanceof AppError){
                 return res.status(error.statusCode).json({msg: error.message})

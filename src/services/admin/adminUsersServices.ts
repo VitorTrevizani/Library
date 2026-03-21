@@ -48,7 +48,7 @@ const adminUserServices = {
         }
 
         if(user?.role == Role.ADMIN){
-            throw new AppError("Usuários com o status de administrador não podem ser banidos", 404, adminUserServicesErrors.YOU_CANNOT_BAN_AN_ADMIN)
+            throw new AppError("Usuários com o status de administrador não podem ser banidos", 403, adminUserServicesErrors.YOU_CANNOT_BAN_AN_ADMIN)
         }
 
         await prisma.users.update({

@@ -93,7 +93,7 @@ const adminServices = {
 
         if(quantity > books.availableCopies){
             console.log("é maior")
-           throw new AppError("Só podem ser excluídas cópias disponíveis", 404, adminBooksServicesErrors.ONLY_AVAILABLE_COPIES_CAN_BE_DELETED)
+           throw new AppError("Só podem ser excluídas cópias disponíveis", 409, adminBooksServicesErrors.ONLY_AVAILABLE_COPIES_CAN_BE_DELETED)
         }else{
             console.log("nao é maior")
         }

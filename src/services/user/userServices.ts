@@ -138,11 +138,11 @@ const userServices = {
 
 
         if(!book){
-            throw new AppError("Credenciais inválidas", 409, userServicesErrors.INVALID_BOOK_CREDENTIALS)
+            throw new AppError("Credenciais inválidas", 404, userServicesErrors.INVALID_BOOK_CREDENTIALS)
         }
 
         if(!user){
-            throw new AppError("Credenciais invállidas", 409, userServicesErrors.INVALID_USER_CREDENTIALS)
+            throw new AppError("Credenciais invállidas", 404, userServicesErrors.INVALID_USER_CREDENTIALS)
         }
 
        
@@ -231,11 +231,11 @@ const userServices = {
 
 
         if(!book){
-            throw new AppError("Credenciais inválidas", 409, userServicesErrors.INVALID_BOOK_CREDENTIALS)
+            throw new AppError("Credenciais inválidas", 404, userServicesErrors.INVALID_BOOK_CREDENTIALS)
         }
 
         if(!user){
-            throw new AppError("Credenciais inválidas", 409, userServicesErrors.INVALID_USER_CREDENTIALS)
+            throw new AppError("Credenciais inválidas", 404, userServicesErrors.INVALID_USER_CREDENTIALS)
         }
 
         

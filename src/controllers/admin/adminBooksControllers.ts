@@ -20,9 +20,9 @@ export const adminControllers = {
             res.status(200).json({msg: "livro registrado com sucesso"})
         }catch(error){
             if(error instanceof AppError) {
-                return res.status(error.statusCode).json({ message: error.message })
+                return res.status(error.statusCode).json({ msg: error.message })
             }
-            return res.status(500).json({ message: "Erro no servidor" })
+            return res.status(500).json({ msg: "Erro no servidor" })
         
         }
     },
@@ -33,9 +33,9 @@ export const adminControllers = {
            res.status(200).json({ msg: "Livro deletado com sucesso!" })
         }catch(error){
            if(error instanceof AppError){
-               return res.status(error.statusCode).json({message: error.message})
+               return res.status(error.statusCode).json({msg: error.message})
            }
-           return res.status(500).json({message: "Erro no servidor"})
+           return res.status(500).json({msg: "Erro no servidor"})
         }
     },
 
@@ -59,7 +59,7 @@ export const adminControllers = {
             res.status(200).json({msg : "Cópias adicionadas com sucesso"})
         }catch(error){
             if(error instanceof AppError){
-                return res.status(error.statusCode).json({message: error.message})
+                return res.status(error.statusCode).json({msg: error.message})
             }
             res.status(500).json({msg: "Erro no servidor"})
         }
