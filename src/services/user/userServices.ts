@@ -42,7 +42,7 @@ const userServices = {
         })
 
         if(user){
-            throw new AppError( "Credenciais inválidas", 409, userServicesErrors.INVALID_USER_CREDENTIALS)
+            throw new AppError( "O usuário informado já existe", 409, userServicesErrors.INVALID_USER_CREDENTIALS)
         }
 
         const salt:string = await bcrypt.genSalt(10)
@@ -69,7 +69,7 @@ const userServices = {
         })
 
         if(!user){
-            throw new AppError("Credenciais inválidas", 401, userServicesErrors.INVALID_USER_CREDENTIALS)
+            throw new AppError("Não existe nenhum usuário com esse E-mail", 401, userServicesErrors.INVALID_USER_CREDENTIALS)
         }
 
 
@@ -99,6 +99,7 @@ const userServices = {
     },
 
     showLoans : async (userId:string) => {
+        //criar um query param que diz para buscar somente os empréstimos ativos, ou somente os finalizados, ou os dois
         const loans = await prisma.loans.findMany({
             where: {
                 userId: userId
@@ -204,10 +205,7 @@ const userServices = {
        
         let hoje = new Date();
         let dataISO = hoje.toISOString();
-        // o usuário não pode exeder o limite de 3 empréstimos
-        // se o usuário estiver com algum prazo atrasado, não poderá pegar livros enquanto não devolver o livro atrasado
-        // um usuario só pode alugar uma cópia de cada livro.
-        // o prazo é de 10 dias para todos os livros
+       
 
         const book = await prisma.books.findUnique({
             where: {

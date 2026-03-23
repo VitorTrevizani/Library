@@ -11,12 +11,12 @@
     "http"
   ],
   "paths": {
+    
     "/user/register": {
       "post": {
         "tags": [
           "Users"
         ],
-        "summary": "Cria um novo usuário",
         "description": "Recebe nome, email e senha e salva no banco de dados",
         "parameters": [
           {
@@ -48,16 +48,664 @@
           },
           "500": {
             "description": "Internal Server Error"
+          },
+          "409": {
+            "description": "O usuário informado já existe"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          },
+          "400": {
+            "description": "Bad Request"
           }
         }
       }
     },
+
+
     "/user/login": {
       "post": {
-        "description": "",
+        "tags": [
+          "Users"
+        ],
+        "description": "Responsável pela autenticação",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "vitao@email.com"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "APItest"
+                }
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "401": {
+            "description":"Unauthorized"
+          }
+        }
+      }
+    },
+
+
+    "/user/loans": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "description": "Busca todos os empréstimos do usuário",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+
+
+    "/user/borrow/{bookId}": {
+      "post": {
+        "tags":[
+          "Users"
+        ],
+        "description": "Faz o empréstimo de um livro. Regras :\n1- O usuário não pode execeder o limite de três empréstimo;\n2- Se o usuário estiver com algum prazo atrasado, não poderá obter novos livros enquanto não devolver o livro atrasado;\n3- Só é possível obter uma cópia de cada livro;\n4- O prazo fixo é de 10 dias, independente do livro",
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409":{
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+
+
+    "/user/return/{bookId}": {
+      "post": {
+        "tags":[
+          "Users"
+        ],
+        "description": "Devolve um livro",
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+
+
+
+    "/admin/show": {
+      "get": {
+        "tags":[
+          "Admin"
+        ],
+        "description": "MOstra todos os livros",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          }
+        ],
+        "responses": {
+          "200":{
+             "description":"OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500":{
+            "description":"Internal Server Error"
+          }
+        }
+      }
+    },
+
+
+
+
+    "/admin/add": {
+      "post": {
+        "tags":[
+          "Admin"
+        ],
+        "description": "Adiciona um novo livro.\nO campo totalCopies não pode ser menor que o availableCopies",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "O homem e seus símbolos"
+                },
+                "author": {
+                  "type": "string",
+                  "example": "Carl Jung"
+                },
+                "totalCopies": {
+                  "type": "number",
+                  "example": 5
+                },
+                "availableCopies":{
+                  "type": "number",
+                  "example": 5
+        
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200":{
+            "description":"OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409":{
+            "description": "Conflict"
+          },
+          "500":{
+            "description":"Internal Server Error"
+          }
+        }
+      }
+    },
+
+
+
+    "/admin/delete": {
+      "delete": {
+        "tags":[
+          "Admin"
+        ],
+        "description": "Deleta um livro",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "O homem e seus símbolos"
+                },
+                "author": {
+                  "type": "string",
+                  "example": "Carl Jung"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200":{
+            "description":"OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500":{
+            "description":"Internal Server Error"
+          }
+        }
+      }
+    },
+
+
+    "/admin/deleteCopies/{quantity}": {
+      "delete": {
+        "tags":[
+          "Admin"
+        ],
+        "description": "Deleta cópias de um livro:\nnão podem ser excluídas mais cópias do que o total de cópias disponíveis.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          },
+          {
+            "name": "quantity",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "O homem e seus símbolos"
+                },
+                "author": {
+                  "type": "string",
+                  "example": "Carl Jung"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200":{
+            "description":"OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409":{
+            "description":"Conflict"
+          }
+        }
+      }
+    },
+
+
+    "/admin/addCopies/{quantity}": {
+      "post": {
+        "tags":[
+          "Admin"
+        ],
+        "description": "Adiciona cópias a um livro",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          },
+          {
+            "name": "quantity",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "O homem e seus símbolos"
+                },
+                "author": {
+                  "type": "string",
+                  "example": "Carl Jung"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200":{
+            "description":"OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500":{
+            "description":"Internal Server Error"
+          }
+        }
+      }
+    },
+
+
+
+    "/admin/blackList": {
+      "get": {
+        "tags":[
+          "Admin"
+        ],
+        "description": "Retorna Todos os usuários com empréstimos atrasados",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+
+
+    "/admin/ban": {
+      "post": {
+        "tags":[
+          "Admin"
+        ],
+        "description": "Bane um usuário",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type":"string",
+                  "example": "n1i2z3a4v5i6t7r8e"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+
+
+    "/adminaddUser": {
+      "post": {
+        "tags":[
+          "Admin"
+        ],
+        "description": "Mundo o status de alguém para usuário comum",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type":"string",
+                  "example": "xew44t4554tv456y657nuu"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+
+
+    "/admin/addAdmin": {
+      "post": {
+        "tags":[
+          "Admin"
+        ],
+        "description": "Muda o status de um usuário para administrador",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "required":true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type":"string",
+                  "example": "sed4cr5t5v56yb67u5"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
           },
           "500": {
             "description": "Internal Server Error"
