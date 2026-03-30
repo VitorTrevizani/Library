@@ -4,16 +4,6 @@ import { AppError } from "../../errors/appError.js"
 
 export const adminControllers = {
 
-    showBooks: async(req:Request, res:Response) => {
-        try{
-            const books = await adminServices.showBooks()
-            res.status(200).json(books)
-
-        }catch(error){
-           res.status(500).json({msg: "Falha no servidor!"})
-        }
-    },
-
     addBook: async(req:Request, res:Response) => {
         try{
             await adminServices.addBook(req.body)

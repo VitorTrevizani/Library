@@ -7,10 +7,6 @@ import { isAdmin } from "../../middlewares/isAdmin.js";
 
 const router = Router()
 
-router.get("/show", isAuthenticated, isAdmin, (req:Request, res:Response) => {
-    adminControllers.showBooks(req, res)
-})
-
 router.post("/add", isAuthenticated, isAdmin, (req:Request, res:Response) => {
     adminControllers.addBook(req, res)
 })

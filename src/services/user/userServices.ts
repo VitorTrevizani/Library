@@ -1,5 +1,5 @@
 import { prisma } from "../../../lib/prisma.js"
-import type { Users } from "../../../generated/prisma/browser.js"
+import type { Books, Users } from "../../../generated/prisma/browser.js"
 import bcrypt from "bcrypt"
 import "dotenv/config"
 import { AppError } from "../../errors/appError.js"
@@ -262,6 +262,20 @@ const userServices = {
             }
         })
     },  
+
+    showBooks: async (pesquisa:string | null) => {
+       if(pesquisa != null && pesquisa != ""){
+            const books = await prisma.books.findMany({
+                where: {
+                    title: pesquisa
+                }
+           })
+            return books
+       }else{
+            const books = await prisma.books.findMany()
+            return books
+       }  
+    },
 }
 
 

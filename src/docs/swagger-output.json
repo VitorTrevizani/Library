@@ -142,7 +142,7 @@
     },
 
 
-    "/user/borrow/{bookId}": {
+    "/user/borrow": {
       "post": {
         "tags":[
           "Users"
@@ -150,16 +150,24 @@
         "description": "Faz o empréstimo de um livro. Regras :\n1- O usuário não pode execeder o limite de três empréstimo;\n2- Se o usuário estiver com algum prazo atrasado, não poderá obter novos livros enquanto não devolver o livro atrasado;\n3- Só é possível obter uma cópia de cada livro;\n4- O prazo fixo é de 10 dias, independente do livro",
         "parameters": [
           {
-            "name": "bookId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "authorization",
             "in": "header",
             "type": "string",
             "required":true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "bookId": {
+                  "type": "string",
+                  "example": "fd463db2-7364-4737-b575-bb12e88451ff"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -189,7 +197,7 @@
     },
 
 
-    "/user/return/{bookId}": {
+    "/user/return": {
       "post": {
         "tags":[
           "Users"
@@ -197,16 +205,25 @@
         "description": "Devolve um livro",
         "parameters": [
           {
-            "name": "bookId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "authorization",
             "in": "header",
             "type": "string",
             "required":true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "bookId": {
+                  "type": "string",
+                  "example": "fd463db2-7364-4737-b575-bb12e88451ff"
+                }
+                
+              }
+            }
           }
         ],
         "responses": {

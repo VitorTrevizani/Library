@@ -7,11 +7,14 @@ import { router as adminBooksRoutes } from './routes/admin/adminBooksRoutes.js';
 import { router as adminUsersRoutes } from './routes/admin/adminUsersRoutes.js';
 const swaggerUi = require("swagger-ui-express")
 const swaggerFile = require("./docs/swagger-output.json")
-
+const cors = require("cors")
 
 //express
 const app = express();
 app.use(express.json());
+
+//cors
+app.use(cors())
 
 //swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))

@@ -13,11 +13,6 @@ enum adminBooksServicesErrors{
 
 const adminServices = {
 
-    showBooks: async () => {
-       const books = await prisma.books.findMany()
-       return books
-    },
-
     addBook: async (dataBook:Books) => {
          
         const books = await prisma.books.findUnique({

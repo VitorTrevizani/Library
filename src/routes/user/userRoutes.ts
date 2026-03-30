@@ -51,15 +51,19 @@ router.post("/login", (req:Request, res:Response) => {
     userController.login(req, res)
 })
 
+router.get("/show", isAuthenticated, (req:Request, res:Response) => {
+    userController.showBooks(req, res)
+})
+
 router.get("/loans", isAuthenticated, isBanned, (req, res) => {
     userController.showLoans(req, res)
 })
 
-router.post("/borrow/:bookId", isAuthenticated, isBanned, (req:Request, res:Response) => {
+router.post("/borrow", isAuthenticated, isBanned, (req:Request, res:Response) => {
   userController.borrow(req, res)
 })
 
-router.post("/return/:bookId", isAuthenticated, isBanned, (req:Request, res:Response) => {
+router.post("/return", isAuthenticated, isBanned, (req:Request, res:Response) => {
   userController.returnBook(req, res)
 })
 

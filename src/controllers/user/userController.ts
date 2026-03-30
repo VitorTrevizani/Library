@@ -1,6 +1,7 @@
 import { type Request, type Response } from "express"
 import { userServices } from "../../services/user/userServices.js"
 import { AppError } from "../../errors/appError.js"
+import type { Books } from "../../../generated/prisma/browser.js";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -26,7 +27,7 @@ export const userController = {
     login: async (req:Request, res:Response) => {
         try{
             const token = await userServices.login(req.body)
-            res.status(200).json({ token })
+            res.status(200).json( token )
 
         }catch(error){
             if(error instanceof AppError) {
@@ -48,7 +49,7 @@ export const userController = {
 
     borrow: async (req:AuthenticatedRequest, res:Response) => {
         try{
-           const bookId = req.params.bookId
+           const bookId = req.body.bookId
            const userId = req.userId
            await userServices.borrow(bookId as string, userId as string)
            res.status(200).json({msg: "Empréstimo realizado com sucesso!"})
@@ -64,7 +65,7 @@ export const userController = {
     returnBook: async (req:AuthenticatedRequest, res:Response) => {
         try{
            const userId = req.userId
-           const bookId = req.params.bookId
+           const bookId = req.body.bookId
            await userServices.returnBook(bookId as string, userId as string)
            res.status(200).json({ msg: "Livro devolvido com sucesso"})
         }catch(error){
@@ -73,7 +74,19 @@ export const userController = {
            }
            return res.status(500).json({ msg: "Erro no servidor" })
         }
-    }
+    },
+
+    showBooks: async(req:Request, res:Response) => {
+        try{
+            const pesquisa: string | null = req.query.title as string ?? null;
+            console.log(req.query.title)
+            const books = await userServices.showBooks(pesquisa)
+            res.status(200).json(books)
+
+        }catch(error){
+           res.status(500).json({msg: "Falha no servidor!"})
+        }
+    },
 
 
    
